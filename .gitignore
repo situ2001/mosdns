@@ -23,3 +23,11 @@ release/
 
 # test utils
 testutils/
+
+# customized git ignore
+
+# vscode go debug
+__debug_bin*
+
+# go build
+mosdns
