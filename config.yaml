@@ -1,0 +1,77 @@
+# 日志设置
+log:
+  level: debug # 日志级别。可选 "debug" "info" "warn" "error"。默认 "info"。
+  production: false # 纯 json 输出。
+  # file:
+  #   "./mosdns.log" # (实验性) 记录日志到文件。默认输出至 stderr。
+  #   # 注意: 日志应由守护进程处理而不是直接写入文件。
+  #   # 此选项仅用于调试。panic 日志不会被记录，其内容仍会
+  #   # 输出至 stderr 。
+
+# (实验性) API 入口设置
+api:
+  http: "127.0.0.1:8080" # 在该地址启动 api 接口。
+
+# []string, 从其他配置文件载入 plugins 插件设置。
+# include 的插件会比本配置文件中的插件先初始化。
+include: []
+
+# 插件设置
+plugins:
+  - tag: "forward"
+    type: "forward"
+    args:
+      concurrent:
+        1 # 并发数。每次请求会从下面配置的 upstreams 里随机选取
+        # concurrent 个 upstreams 发送请求。取最快返回的应答。超过 3 最多选
+        # 3 个。默认 1 。
+      upstreams: # []upstream, 上游服务器。至少要配置一个。
+        # - tag: google_doh
+        #   addr: "https://dns.google/dns-query"
+        #   dial_addr: "8.8.8.8"
+        #   bootstrap: "8.8.8.8"
+        #   bootstrap_version: 4
+        #   # socks5: "127.0.0.1:1080"
+        #   idle_timeout: 30
+        #   enable_pipeline: false
+        #   enable_http3: true
+        #   max_conns: 4
+        #   insecure_skip_verify: false
+        #   so_mark: 0
+        #   bind_to_device: ""
+
+        # - tag: cloudflare_doh
+        #   addr: "https://cloudflare-dns.com/dns-query"
+        #   dial_addr: "8.8.8.8"
+        #   bootstrap: "8.8.8.8"
+        #   bootstrap_version: 4
+        #   # socks5: "127.0.0.1:1080"
+        #   idle_timeout: 30
+        #   enable_pipeline: false
+        #   enable_http3: false
+        #   max_conns: 4
+        #   insecure_skip_verify: false
+        #   so_mark: 0
+        #   bind_to_device: ""
+
+        - tag: adguard_dns_quic
+          addr: "quic://dns.adguard-dns.com"
+          # dial_addr: "8.8.8.8"
+          # bootstrap: "8.8.8.8"
+          bootstrap_version: 4
+          idle_timeout: 30
+          enable_pipeline: false
+          enable_http3: true
+          max_conns: 4
+          insecure_skip_verify: true
+          so_mark: 0
+          bind_to_device: ""
+
+        # - addr: "tcp://8.8.8.8"
+        #   enable_pipeline: true
+
+  - tag: "udp"
+    type: "udp_server"
+    args:
+      entry: forward # 可执行插件的 tag。
+      listen: 127.0.0.1:5353 # 监听地址。
